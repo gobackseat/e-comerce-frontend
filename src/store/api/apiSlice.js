@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 // Base query with automatic token handling
 const baseQuery = fetchBaseQuery({
-  baseUrl: '/api',
+  baseUrl: 'https://e-comerce-backend-mmvv.onrender.com/api',
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     // Get token from auth state or cookies

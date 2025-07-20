@@ -60,6 +60,7 @@ import { Toaster, toast } from 'react-hot-toast';
 import { ErrorBoundary } from 'react-error-boundary';
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import { config } from '../../utils/config';
 
 const ErrorFallback = ({ error, resetErrorBoundary }) => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-orange-100">
@@ -103,19 +104,19 @@ const AdminDashboard = () => {
         let token = localStorage.getItem('token');
         if (!token) token = getCookie('token');
         // Fetch stats
-        const statsRes = await fetch('/api/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } });
+        const statsRes = await fetch(config.baseURL + '/dashboard/stats', { headers: { Authorization: `Bearer ${token}` } });
         if (!statsRes.ok) throw new Error('Failed to fetch stats');
         const statsData = await statsRes.json();
         setStats(statsData);
 
         // Fetch recent orders
-        const ordersRes = await fetch('/api/dashboard/recent-orders', { headers: { Authorization: `Bearer ${token}` } });
+        const ordersRes = await fetch(config.baseURL + '/dashboard/recent-orders', { headers: { Authorization: `Bearer ${token}` } });
         if (!ordersRes.ok) throw new Error('Failed to fetch recent orders');
         const ordersData = await ordersRes.json();
         setRecentOrders(ordersData.orders || []);
 
         // Fetch top products
-        const productsRes = await fetch('/api/dashboard/product-analytics', { headers: { Authorization: `Bearer ${token}` } });
+        const productsRes = await fetch(config.baseURL + '/dashboard/product-analytics', { headers: { Authorization: `Bearer ${token}` } });
         if (!productsRes.ok) throw new Error('Failed to fetch top products');
         const productsData = await productsRes.json();
         setTopProducts(productsData.topProducts || []);

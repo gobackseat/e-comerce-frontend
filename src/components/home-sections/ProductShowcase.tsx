@@ -9,6 +9,7 @@ import { Label } from '../ui/label.jsx';
 import { ShoppingCart, Check, Plus, Minus, Heart, Share2 } from "lucide-react";
 import { useCart } from '../../contexts/CartContext';
 import { useWishlist } from '../../contexts/WishlistContext.jsx';
+import { config } from '../../utils/config';
 
 const colorOptions = [
   { name: "Black", value: "black", hex: "#1a1a1a", image: "/Assets/imgs/backseat-extender-for-dogs (1).png" },
@@ -29,7 +30,7 @@ export default function ProductShowcase() {
   useEffect(() => {
     setLoading(true);
     setError(null);
-    fetch('/api/products', { headers: { 'Cache-Control': 'no-cache' } })
+    fetch(`${config.baseURL}/products`, { headers: { 'Cache-Control': 'no-cache' } })
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch product: ${res.status}`);
         return res.json();

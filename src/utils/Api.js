@@ -2,7 +2,7 @@ import { config } from "./config";
 import { getToken } from "./localstorage";
 import axios from 'axios';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE = 'https://e-comerce-backend-mmvv.onrender.com';
 
 const getRequest = async (path) => {
   try {

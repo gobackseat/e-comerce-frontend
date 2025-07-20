@@ -22,7 +22,7 @@ export default defineConfig({
     port: 3000,
     host: true,
     proxy: {
-      "/api": "http://localhost:3001",
+      // "/api": "http://localhost:3001",
       "/uploads": {
         target: "http://localhost:5000",
         changeOrigin: true,

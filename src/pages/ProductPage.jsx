@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Header from '../components/home-sections/Header.tsx';
 import Footer from '../components/home-sections/Footer.tsx';
+import { config } from '../utils/config';
 
 const ProductPage = () => {
   const [products, setProducts] = useState([]);
@@ -10,7 +11,7 @@ const ProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("/api/products/all");
+        const res = await fetch(`${config.baseURL}/products/all`);
         if (!res.ok) throw new Error("Failed to fetch products");
         const data = await res.json();
         setProducts(data.data.products || []);

@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
+import { config } from '../../utils/config';
 
 const TEMPLATES = [
   { value: '', label: 'Custom HTML/Plain' },
@@ -54,8 +55,11 @@ export default function MailAdminPanel() {
   // Fetch users
   useEffect(() => {
     setUserLoading(true);
-    fetch(`/api/admin/users?search=${encodeURIComponent(userSearch)}&page=${userPage}`, {
+    fetch(`${config.baseURL}/admin/users?search=${encodeURIComponent(userSearch)}&page=${userPage}`, {
       credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => {
@@ -75,8 +79,11 @@ export default function MailAdminPanel() {
       template: emailFilter.template,
       page: emailPage,
     });
-    fetch(`/api/admin/mails?${params.toString()}`, {
+    fetch(`${config.baseURL}/admin/mails?${params.toString()}`, {
       credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => {
@@ -90,8 +97,11 @@ export default function MailAdminPanel() {
   // Fetch templates
   useEffect(() => {
     setTemplateLoading(true);
-    fetch('/api/admin/email-templates', {
+    fetch(`${config.baseURL}/admin/email-templates`, {
       credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => setTemplates(data.templates || []))
@@ -104,8 +114,11 @@ export default function MailAdminPanel() {
     setShowUserHistory(true);
     setUserHistoryUser(user);
     setUserHistoryLoading(true);
-    fetch(`/api/admin/users/${user._id}/emails`, {
+    fetch(`${config.baseURL}/admin/users/${user._id}/emails`, {
       credentials: 'include',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
       .then(res => res.json())
       .then(data => setUserHistory(data.emails || []))
@@ -124,9 +137,12 @@ export default function MailAdminPanel() {
         to: selectedUsers.map(u => u.email),
         data: composeForm.template ? JSON.parse(composeForm.data || '{}') : undefined,
       };
-      const res = await fetch('/api/admin/mails', {
+      const res = await fetch(`${config.baseURL}/admin/mails`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         credentials: 'include',
         body: JSON.stringify(payload),
       });
