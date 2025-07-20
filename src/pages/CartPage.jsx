@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import config from "../config";
 
 const CartPage = () => {
   const [cart, setCart] = useState([]);
@@ -8,7 +9,7 @@ const CartPage = () => {
   useEffect(() => {
     const fetchCart = async () => {
       try {
-        const res = await fetch("/api/cart");
+        const res = await fetch(`${config.baseURL}/cart`);
         if (!res.ok) throw new Error("Failed to fetch cart");
         const data = await res.json();
         setCart(data.carts || []);

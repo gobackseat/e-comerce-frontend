@@ -72,7 +72,7 @@ export const WishlistProvider = ({ children }) => {
 
   const isWishlisted = (product) => {
     const productId = getProductId(product);
-    return wishlist.some((item) => getProductId(item) === productId);
+    return Array.isArray(wishlist) && wishlist.some((item) => getProductId(item) === productId);
   };
 
   return (

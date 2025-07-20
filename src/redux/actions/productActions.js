@@ -6,7 +6,7 @@ export const getProducts = () => async dispatch => {
   try {
     dispatch({type: actionTypes.GET_PRODUCTS_REQUEST})
 
-    const {data} = await Api.getRequest('/api/products')
+    const {data} = await Api.getRequest('/products')
 
     dispatch({
       type: actionTypes.GET_PRODUCTS_SUCCESS,
@@ -27,7 +27,7 @@ export const getProductDetails = id => async dispatch => {
   try {
     dispatch({type: actionTypes.GET_PRODUCT_DETAILS_REQUEST})
 
-    const {data} = await Api.getRequest(`/api/products/${id}`)
+    const {data} = await Api.getRequest(`/products/${id}`)
     const p = JSON.parse(data)
     dispatch({
       type: actionTypes.GET_PRODUCT_DETAILS_SUCCESS,

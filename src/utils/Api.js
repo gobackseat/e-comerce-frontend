@@ -2,8 +2,6 @@ import { config } from "./config";
 import { getToken } from "./localstorage";
 import axios from 'axios';
 
-const API_BASE = 'https://e-comerce-backend-mmvv.onrender.com';
-
 const getRequest = async (path) => {
   try {
     const params = {
@@ -25,7 +23,6 @@ const postRequest = async (path, body) => {
     const headers = {
       "Content-Type": "application/json",
     };
-    // Only send token for protected routes
     if (!['/users/signup', '/users/signin'].includes(path) && getToken()) {
       headers.Authorization = "Bearer " + getToken();
     }
@@ -77,26 +74,27 @@ const putRequest = async (path, body) => {
   }
 };
 
+// All axios-based functions should use config.baseURL
 export async function fetchCart(token) {
   try {
-    const res = await axios.get(`${API_BASE}/api/cart`, {
+    const res = await axios.get(`${config.baseURL}/cart`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return res.data.carts || [];
+    return res.data.data;
   } catch (err) {
     throw err.response?.data || err;
   }
 }
 
-export async function addToCart({ productId, count }, token) {
+export async function addToCart(productId, count, token) {
   try {
     const res = await axios.post(
-      `${API_BASE}/api/cart`,
+      `${config.baseURL}/cart`,
       { productId, count },
       { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
     );
-    return res.data.cart;
+    return res.data.data;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -104,11 +102,10 @@ export async function addToCart({ productId, count }, token) {
 
 export async function removeFromCart(cartId, token) {
   try {
-    await axios.delete(`${API_BASE}/api/cart/${cartId}`, {
+    await axios.delete(`${config.baseURL}/cart/${cartId}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return true;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -121,7 +118,7 @@ export async function updateCartItem({ productId, count }, token) {
 
 export async function createOrder(orderData, token) {
   try {
-    const res = await axios.post(`${API_BASE}/orders`, orderData, {
+    const res = await axios.post(`${config.baseURL}/orders`, orderData, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
@@ -133,11 +130,11 @@ export async function createOrder(orderData, token) {
 
 export async function createPaymentIntent(orderId, token) {
   try {
-    const res = await axios.post(`${API_BASE}/orders/${orderId}/payment-intent`, {}, {
+    const res = await axios.post(`${config.baseURL}/orders/${orderId}/payment-intent`, {}, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return res.data;
+    return res.data.data;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -145,11 +142,11 @@ export async function createPaymentIntent(orderId, token) {
 
 export async function fetchWishlist(token) {
   try {
-    const res = await axios.get(`${API_BASE}/api/auth/me`, {
+    const res = await axios.get(`${config.baseURL}/auth/me`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return res.data.data?.user?.wishlist || [];
+    return res.data.data;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -157,11 +154,10 @@ export async function fetchWishlist(token) {
 
 export async function addToWishlist(productId, token) {
   try {
-    await axios.post(`/api/users/wishlist/${productId}`, {}, {
+    await axios.post(`${config.baseURL}/users/wishlist/${productId}`, {}, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return true;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -169,11 +165,10 @@ export async function addToWishlist(productId, token) {
 
 export async function removeFromWishlist(productId, token) {
   try {
-    await axios.delete(`/api/users/wishlist/${productId}`, {
+    await axios.delete(`${config.baseURL}/users/wishlist/${productId}`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return true;
   } catch (err) {
     throw err.response?.data || err;
   }
@@ -181,22 +176,24 @@ export async function removeFromWishlist(productId, token) {
 
 export async function fetchMyOrders(token) {
   try {
-    const res = await axios.get(`${API_BASE}/orders/my-orders`, {
+    const res = await axios.get(`${config.baseURL}/orders/my-orders`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return res.data.data || [];
+    return res.data.data;
   } catch (err) {
     throw err.response?.data || err;
   }
 }
 
 export const Api = {
-  getRequest: async (url, config = {}) => {
+  getRequest: async (url, configArg = {}) => {
     try {
       const token = localStorage.getItem('token');
-      const headers = token ? { ...config.headers, Authorization: `Bearer ${token}` } : config.headers;
-      const response = await axios.get(url, { ...config, headers });
+      const headers = token ? { ...configArg.headers, Authorization: `Bearer ${token}` } : configArg.headers;
+      // Prepend config.baseURL if not already present
+      const fullUrl = url.startsWith('http') ? url : config.baseURL + url;
+      const response = await axios.get(fullUrl, { ...configArg, headers });
       return { statusCode: response.status, data: response.data };
     } catch (error) {
       return { statusCode: error.response?.status || 500, data: error.response?.data || {} };

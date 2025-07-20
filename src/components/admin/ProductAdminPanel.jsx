@@ -41,7 +41,7 @@ const ProductAdminPanel = () => {
   const fetchProduct = async () => {
     setLoading(true);
     try {
-      const res = await fetch(config.baseURL + '/products/');
+      const res = await fetch(`${config.baseURL}/products/`);
       const data = await res.json();
       if (res.ok && data.data && data.data.product) {
         setProduct(data.data.product);
@@ -113,7 +113,7 @@ const ProductAdminPanel = () => {
       let res, data;
       if (!product) {
         // No product exists, create new
-        res = await fetch(config.baseURL + '/products/', {
+        res = await fetch(`${config.baseURL}/products/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ const ProductAdminPanel = () => {
         });
       } else {
         // Product exists, update
-        res = await fetch(config.baseURL + '/products/', {
+        res = await fetch(`${config.baseURL}/products/`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -151,7 +151,7 @@ const ProductAdminPanel = () => {
       return;
     }
     try {
-      const res = await fetch(config.baseURL + '/products/inventory', {
+      const res = await fetch(`${config.baseURL}/products/inventory`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -173,7 +173,7 @@ const ProductAdminPanel = () => {
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(config.baseURL + '/products/', {
+      const res = await fetch(`${config.baseURL}/products/`, {
         method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,

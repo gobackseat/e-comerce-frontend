@@ -13,7 +13,7 @@ function Index() {
     // callback
     if (email.length > 2 && password.length > 2) {
       setLoading(true)
-      const {statusCode, data} = await Api.postRequest('/api/user/signin', {
+      const {statusCode, data} = await Api.postRequest('/user/signin', {
         email,
 
         password,

@@ -175,13 +175,17 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  const getTotalItems = () => cart.reduce((sum, item) => sum + (item.count || 1), 0);
+  const getTotalItems = () =>
+    Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.count || 1), 0) : 0;
+
   const getTotalPrice = () =>
-    cart.reduce(
-      (sum, item) =>
-        sum + ((item.productId?.price || item.price || 0) * (item.count || 1)),
-      0
-    );
+    Array.isArray(cart)
+      ? cart.reduce(
+          (sum, item) =>
+            sum + ((item.productId?.price || item.price || 0) * (item.count || 1)),
+          0
+        )
+      : 0;
 
   return (
     <CartContext.Provider value={{

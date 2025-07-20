@@ -21,7 +21,7 @@ const OrdersPage = () => {
     }
     setLoading(true);
     setError(null);
-    Api.getRequest("/api/orders/myorders")
+    Api.getRequest("/orders/myorders")
       .then(({ statusCode, data }) => {
         if (statusCode !== 200) throw new Error("Failed to fetch orders");
         setOrders(data.orders || []);

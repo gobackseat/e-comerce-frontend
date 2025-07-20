@@ -11,7 +11,7 @@ function useLogin() {
   })
   const {replace} = useHistory()
   const checkLogin = useCallback(async () => {
-    const {statusCode, data} = await Api.getRequest(`/api/user/me`)
+    const {statusCode, data} = await Api.getRequest(`/user/me`)
     // console.log({statusCode, data})
     if (statusCode === 400 || statusCode === 500) {
       replace('/')

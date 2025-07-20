@@ -4,7 +4,7 @@ import {Api} from '../../utils/Api'
 import {convertToCartData} from '../../utils/utils.function'
 
 export const addToCart = (id, qty) => async dispatch => {
-  const {data} = await Api.getRequest(`/api/products/${id}`)
+  const {data} = await Api.getRequest(`/products/${id}`)
   const product = JSON.parse(data)
   // console.log(product)
   dispatch({
@@ -19,7 +19,7 @@ export const addToCart = (id, qty) => async dispatch => {
     },
   })
 
-  Api.postRequest('/api/cart', {productId: id, count: qty})
+  Api.postRequest('/cart', {productId: id, count: qty})
 }
 
 export const removeFromCart =
@@ -29,12 +29,12 @@ export const removeFromCart =
       type: actionTypes.REMOVE_FROM_CART,
       payload: pId,
     })
-    Api.DeleteRequest('/api/cart/' + _id)
+    Api.DeleteRequest('/cart/' + _id)
   }
 
 export const fetchCart = () => async dispatch => {
   try {
-    const {data: strigifyData} = await Api.getRequest(`/api/cart/`)
+    const {data: strigifyData} = await Api.getRequest(`/cart/`)
     // console.log({strigifyData})
     const {carts} = JSON.parse(strigifyData)
     // console.log(carts)

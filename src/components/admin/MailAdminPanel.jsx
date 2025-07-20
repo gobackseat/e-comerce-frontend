@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster, toast } from 'react-hot-toast';
 import { config } from '../../utils/config';
+import MailTemplateManager from './MailTemplateManager';
 
 const TEMPLATES = [
   { value: '', label: 'Custom HTML/Plain' },
@@ -13,6 +14,7 @@ const TEMPLATES = [
 
 export default function MailAdminPanel() {
   const token = useSelector((state) => state.auth.token);
+  const [tab, setTab] = useState('logs');
   // User list state
   const [users, setUsers] = useState([]);
   const [userSearch, setUserSearch] = useState('');
@@ -181,8 +183,129 @@ export default function MailAdminPanel() {
       <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
         <span role="img" aria-label="mail">📧</span> Email & Newsletter Dashboard
       </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* User List Panel */}
+      <div className="flex gap-4 mb-6">
+        <button className={`px-4 py-2 rounded ${tab === 'logs' ? 'bg-orange-600 text-white' : 'bg-gray-200'}`} onClick={() => setTab('logs')}>Mail Logs</button>
+        <button className={`px-4 py-2 rounded ${tab === 'templates' ? 'bg-orange-600 text-white' : 'bg-gray-200'}`} onClick={() => setTab('templates')}>Templates</button>
+        <button className={`px-4 py-2 rounded ${tab === 'users' ? 'bg-orange-600 text-white' : 'bg-gray-200'}`} onClick={() => setTab('users')}>Users</button>
+      </div>
+      {tab === 'templates' && <MailTemplateManager />}
+      {tab === 'logs' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* User List Panel */}
+          <motion.div layout className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">Users</h3>
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={userSearch}
+                onChange={e => setUserSearch(e.target.value)}
+                className="px-3 py-2 border rounded w-48"
+              />
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm border rounded-lg">
+                <thead className="bg-orange-100">
+                  <tr>
+                    <th><input type="checkbox" checked={allSelected} onChange={toggleAllUsers} /></th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>History</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {userLoading ? (
+                    <tr><td colSpan={6} className="text-center py-8">Loading users...</td></tr>
+                  ) : users.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-8">No users found.</td></tr>
+                  ) : (
+                    users.map((user) => (
+                      <tr key={user._id} className="border-b hover:bg-orange-50">
+                        <td><input type="checkbox" checked={selectedUsers.some(u => u._id === user._id)} onChange={() => toggleUser(user)} /></td>
+                        <td>{user.firstName} {user.lastName}</td>
+                        <td>{user.email}</td>
+                        <td>{user.isAdmin ? 'Admin' : 'User'}</td>
+                        <td>{user.isActive ? 'Active' : 'Inactive'}</td>
+                        <td><button className="text-blue-600 underline" onClick={() => openUserHistory(user)}>View</button></td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <button disabled={userPage <= 1} onClick={() => setUserPage(p => Math.max(1, p - 1))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Prev</button>
+              <span>Page {userPage} of {userPages}</span>
+              <button disabled={userPage >= userPages} onClick={() => setUserPage(p => Math.min(p + 1, userPages))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Next</button>
+            </div>
+            {/* Compose button removed as composing is now in Templates tab */}
+          </motion.div>
+          {/* Email Log Panel */}
+          <motion.div layout className="bg-white rounded-xl shadow-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold">Email Log</h3>
+              <input
+                type="text"
+                placeholder="Search emails..."
+                value={emailSearch}
+                onChange={e => setEmailSearch(e.target.value)}
+                className="px-3 py-2 border rounded w-48"
+              />
+            </div>
+            <div className="flex gap-2 mb-4">
+              <select value={emailFilter.status} onChange={e => setEmailFilter(f => ({ ...f, status: e.target.value }))} className="px-2 py-1 border rounded">
+                <option value="">All Status</option>
+                <option value="sent">Sent</option>
+                <option value="failed">Failed</option>
+              </select>
+              <select value={emailFilter.template} onChange={e => setEmailFilter(f => ({ ...f, template: e.target.value }))} className="px-2 py-1 border rounded">
+                <option value="">All Templates</option>
+                {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+              </select>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm border rounded-lg">
+                <thead className="bg-orange-100">
+                  <tr>
+                    <th>To</th>
+                    <th>Subject</th>
+                    <th>Template</th>
+                    <th>Status</th>
+                    <th>Sent At</th>
+                    <th>Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {emailLoading ? (
+                    <tr><td colSpan={6} className="text-center py-8">Loading emails...</td></tr>
+                  ) : emails.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-8">No emails found.</td></tr>
+                  ) : (
+                    emails.map(email => (
+                      <tr key={email._id} className="border-b hover:bg-orange-50">
+                        <td>{email.to}</td>
+                        <td>{email.subject}</td>
+                        <td>{email.template || '-'}</td>
+                        <td className={email.status === 'sent' ? 'text-green-600' : email.status === 'failed' ? 'text-red-600' : 'text-gray-600'}>{email.status}</td>
+                        <td>{new Date(email.sentAt).toLocaleString()}</td>
+                        <td className="text-xs text-red-600">{email.error || '-'}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="flex justify-between items-center mt-4">
+              <button disabled={emailPage <= 1} onClick={() => setEmailPage(p => Math.max(1, p - 1))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Prev</button>
+              <span>Page {emailPage} of {emailPages}</span>
+              <button disabled={emailPage >= emailPages} onClick={() => setEmailPage(p => Math.min(p + 1, emailPages))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Next</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+      {tab === 'users' && (
         <motion.div layout className="bg-white rounded-xl shadow-lg p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold">Users</h3>
@@ -239,69 +362,7 @@ export default function MailAdminPanel() {
             Compose Email to Selected
           </button>
         </motion.div>
-
-        {/* Email Log Panel */}
-        <motion.div layout className="bg-white rounded-xl shadow-lg p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-semibold">Email Log</h3>
-            <input
-              type="text"
-              placeholder="Search emails..."
-              value={emailSearch}
-              onChange={e => setEmailSearch(e.target.value)}
-              className="px-3 py-2 border rounded w-48"
-            />
-          </div>
-          <div className="flex gap-2 mb-4">
-            <select value={emailFilter.status} onChange={e => setEmailFilter(f => ({ ...f, status: e.target.value }))} className="px-2 py-1 border rounded">
-              <option value="">All Status</option>
-              <option value="sent">Sent</option>
-              <option value="failed">Failed</option>
-            </select>
-            <select value={emailFilter.template} onChange={e => setEmailFilter(f => ({ ...f, template: e.target.value }))} className="px-2 py-1 border rounded">
-              <option value="">All Templates</option>
-              {templates.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-            </select>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm border rounded-lg">
-              <thead className="bg-orange-100">
-                <tr>
-                  <th>To</th>
-                  <th>Subject</th>
-                  <th>Template</th>
-                  <th>Status</th>
-                  <th>Sent At</th>
-                  <th>Error</th>
-                </tr>
-              </thead>
-              <tbody>
-                {emailLoading ? (
-                  <tr><td colSpan={6} className="text-center py-8">Loading emails...</td></tr>
-                ) : emails.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-8">No emails found.</td></tr>
-                ) : (
-                  emails.map(email => (
-                    <tr key={email._id} className="border-b hover:bg-orange-50">
-                      <td>{email.to}</td>
-                      <td>{email.subject}</td>
-                      <td>{email.template || '-'}</td>
-                      <td className={email.status === 'sent' ? 'text-green-600' : email.status === 'failed' ? 'text-red-600' : 'text-gray-600'}>{email.status}</td>
-                      <td>{new Date(email.sentAt).toLocaleString()}</td>
-                      <td className="text-xs text-red-600">{email.error || '-'}</td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex justify-between items-center mt-4">
-            <button disabled={emailPage <= 1} onClick={() => setEmailPage(p => Math.max(1, p - 1))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Prev</button>
-            <span>Page {emailPage} of {emailPages}</span>
-            <button disabled={emailPage >= emailPages} onClick={() => setEmailPage(p => Math.min(p + 1, emailPages))} className="px-3 py-1 rounded bg-gray-200 text-gray-700 disabled:opacity-50">Next</button>
-          </div>
-        </motion.div>
-      </div>
+      )}
 
       {/* Compose Modal */}
       <AnimatePresence>

@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Cookies from 'js-cookie';
+import { config } from '../../utils/config';
 
 // Base query with automatic token handling
 const baseQuery = fetchBaseQuery({
-  baseUrl: 'https://e-comerce-backend-mmvv.onrender.com/api',
+  baseUrl: config.baseURL,
   credentials: 'include',
   prepareHeaders: (headers, { getState }) => {
     // Get token from auth state or cookies
