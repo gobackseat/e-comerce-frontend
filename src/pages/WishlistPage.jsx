@@ -1,6 +1,6 @@
 import React from "react";
 import { useWishlist } from "../contexts/WishlistContext.jsx";
-import { Button } from "../components/ui/button.jsx";
+import { Button } from "../components/home-sections/ui/button.tsx";
 import Header from '../components/home-sections/Header.tsx';
 import Footer from '../components/home-sections/Footer.tsx';
 

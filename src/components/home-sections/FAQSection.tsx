@@ -1,8 +1,9 @@
 "use client"
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from '../ui/card.jsx';
+import { motion, useInView, AnimatePresence } from "framer-motion";
 
 const faqs = [
   {
@@ -39,43 +40,80 @@ const faqs = [
 
 export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null)
+  const sectionRef = useRef(null);
+  const isInView = useInView(sectionRef, { once: true, margin: "-100px" });
 
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index)
   }
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-white relative overflow-hidden" ref={sectionRef}>
+      {/* Animated SVG Paw Print Background */}
+      <svg
+        className="absolute left-0 bottom-0 w-1/2 h-96 z-0 pointer-events-none animate-bgPaws"
+        viewBox="0 0 700 400"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ opacity: 0.10 }}
+      >
+        <ellipse cx="120" cy="300" rx="38" ry="24" fill="#fbbf24"/>
+        <ellipse cx="90" cy="270" rx="12" ry="8" fill="#fbbf24"/>
+        <ellipse cx="150" cy="270" rx="12" ry="8" fill="#fbbf24"/>
+        <ellipse cx="110" cy="330" rx="10" ry="7" fill="#fbbf24"/>
+        <ellipse cx="130" cy="330" rx="10" ry="7" fill="#fbbf24"/>
+      </svg>
       <div className="container mx-auto px-4">
-        <div className="text-center mb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {} }
+          transition={{ duration: 0.8 }}
+          className="text-center mb-16"
+        >
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">Frequently Asked Questions</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Got questions? We've got answers. Here are the most common questions about our backseat extender.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto space-y-4 relative z-10">
           {faqs.map((faq, index) => (
-            <Card key={index} className="border border-gray-200 hover:shadow-md transition-shadow">
-              <CardContent className="p-0">
-                <button
-                  onClick={() => toggleFAQ(index)}
-                  className="w-full text-left p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white pr-4">{faq.question}</h3>
-                  {openIndex === index ? (
-                    <ChevronUp className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-orange-600 flex-shrink-0" />
-                  )}
-                </button>
-                {openIndex === index && (
-                  <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-200">
-                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{faq.answer}</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {} }
+              transition={{ duration: 0.6, delay: index * 0.1 }}
+            >
+              <Card className="border border-gray-200 hover:shadow-md transition-shadow">
+                <CardContent className="p-0">
+                  <button
+                    onClick={() => toggleFAQ(index)}
+                    className="w-full text-left p-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  >
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white pr-4">{faq.question}</h3>
+                    {openIndex === index ? (
+                      <ChevronUp className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-orange-600 flex-shrink-0" />
+                    )}
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openIndex === index && (
+                      <motion.div
+                        key="content"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="px-6 pb-6 overflow-hidden"
+                      >
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed">{faq.answer}</p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
         </div>
       </div>

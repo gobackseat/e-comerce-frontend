@@ -318,7 +318,7 @@ const AdminDashboard = () => {
 
   // Enhanced recent orders widget
   const EnhancedRecentOrders = ({ orders }) => (
-    <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">Recent Orders <ClipboardDocumentListIcon className="w-5 h-5 text-orange-500" /></h2>
       {loading ? <Skeleton height={40} count={4} /> : orders.length === 0 ? (
         <div className="text-gray-500 text-center py-8">No recent orders.</div>
@@ -329,7 +329,7 @@ const AdminDashboard = () => {
               <div>
                 <span className="font-medium text-gray-900">{order.customer?.name || 'Unknown'}</span>
                 <span className="ml-2 text-xs text-gray-500">{order.id}</span>
-              </div>
+      </div>
               <div className="text-right">
                 <span className="font-semibold text-gray-900">${order.total}</span>
                 <span className={`ml-2 px-2 py-1 text-xs rounded-full ${order.status === 'delivered' ? 'bg-green-100 text-green-800' : order.status === 'shipped' ? 'bg-blue-100 text-blue-800' : order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800'}`}>{order.status}</span>
@@ -519,9 +519,9 @@ const AdminDashboard = () => {
           trend="neutral"
           icon={UsersIcon}
           tooltip="Total number of registered users."
-          onClick={() => setCurrentView('users')}
-        />
-      </div>
+            onClick={() => setCurrentView('users')}
+          />
+        </div>
       {/* Recent Orders & Top Products */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <EnhancedRecentOrders orders={recentOrders} />
@@ -622,7 +622,7 @@ const AdminDashboard = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : <div className="text-gray-500 text-center py-8">No sales data available.</div>}
-        </div>
+          </div>
         {/* User Growth Chart */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">User Growth <UserGroupIcon className="w-5 h-5 text-orange-500" /></h2>
@@ -638,8 +638,8 @@ const AdminDashboard = () => {
               </LineChart>
             </ResponsiveContainer>
           ) : <div className="text-gray-500 text-center py-8">No user growth data available.</div>}
+          </div>
         </div>
-      </div>
       {/* Orders by Status Pie Chart */}
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">Orders by Status <ClipboardDocumentListIcon className="w-5 h-5 text-orange-500" /></h2>
@@ -772,7 +772,7 @@ const AdminDashboard = () => {
               <div>
                 <label className="block font-semibold mb-1">Store Name</label>
                 <input type="text" className="w-full border rounded px-3 py-2" value={settings.storeName} onChange={e => handleSettingsChange('storeName', e.target.value)} />
-              </div>
+      </div>
               <div>
                 <label className="block font-semibold mb-1">Store Email</label>
                 <input type="email" className="w-full border rounded px-3 py-2" value={settings.storeEmail} onChange={e => handleSettingsChange('storeEmail', e.target.value)} />
@@ -941,12 +941,12 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
-                <img
+                <div className="flex items-center space-x-3">
+                  <img
                   className="w-8 h-8 rounded-full bg-gray-300 object-cover"
                   src={settings.adminAvatar || '/api/placeholder/32/32'}
-                  alt="Admin Avatar"
-                />
+                    alt="Admin Avatar"
+                  />
                 <span className="text-sm font-medium text-gray-700">{settings.adminName || 'Admin User'}</span>
               </div>
             </div>
@@ -1082,46 +1082,46 @@ const ProductsTable = ({ products = [], loading, error }) => (
       ) : error ? (
         <div className="text-red-600 p-4">{error}</div>
       ) : (
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
             {products.length === 0 ? (
               <tr><td colSpan={5} className="text-center py-8 text-gray-500">No products found.</td></tr>
             ) : products.map((product) => (
               <tr key={product._id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
+            <td className="px-6 py-4 whitespace-nowrap">
+              <div className="flex items-center">
                     <img className="h-10 w-10 rounded-lg bg-gray-300" src={product.image || 'https://via.placeholder.com/40'} alt={product.name} />
-                    <div className="ml-4">
+                <div className="ml-4">
                       <div className="text-sm font-medium text-gray-900">{product.name}</div>
                       <div className="text-sm text-gray-500">SKU: {product.sku || 'N/A'}</div>
-                    </div>
-                  </div>
-                </td>
+                </div>
+              </div>
+            </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${product.price}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{product.countInStock}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+            <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${product.countInStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{product.countInStock > 0 ? 'Active' : 'Out of Stock'}</span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    <button className="text-primary-600 hover:text-primary-900"><EyeIcon className="w-4 h-4" /></button>
-                    <button className="text-blue-600 hover:text-blue-900"><PencilIcon className="w-4 h-4" /></button>
-                    <button className="text-red-600 hover:text-red-900"><TrashIcon className="w-4 h-4" /></button>
-                  </div>
-                </td>
-              </tr>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <div className="flex space-x-2">
+                <button className="text-primary-600 hover:text-primary-900"><EyeIcon className="w-4 h-4" /></button>
+                <button className="text-blue-600 hover:text-blue-900"><PencilIcon className="w-4 h-4" /></button>
+                <button className="text-red-600 hover:text-red-900"><TrashIcon className="w-4 h-4" /></button>
+              </div>
+            </td>
+          </tr>
             ))}
-          </tbody>
-        </table>
+        </tbody>
+      </table>
       )}
     </div>
   </div>
@@ -1175,31 +1175,31 @@ const OrdersTable = ({ orders = [] }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Orders</h3>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {orders.length === 0 ? (
-              <tr><td colSpan={6} className="text-center py-8 text-gray-500">No orders found.</td></tr>
-            ) : orders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.customer}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${order.amount}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
+  <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="px-6 py-4 border-b border-gray-200">
+      <h3 className="text-lg font-medium text-gray-900">Orders</h3>
+    </div>
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {orders.length === 0 ? (
+            <tr><td colSpan={6} className="text-center py-8 text-gray-500">No orders found.</td></tr>
+          ) : orders.map((order) => (
+            <tr key={order.id}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{order.id}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.customer}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${order.amount}</td>
+              <td className="px-6 py-4 whitespace-nowrap">
                   {editingOrderId === order.id ? (
                     <select value={newStatus} onChange={handleStatusChange} className="border rounded px-2 py-1">
                       <option value="pending">Pending</option>
@@ -1209,19 +1209,19 @@ const OrdersTable = ({ orders = [] }) => {
                       <option value="cancelled">Cancelled</option>
                     </select>
                   ) : (
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'delivered' ? 'bg-green-100 text-green-800' :
-                      order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.status}
-                    </span>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  order.status === 'delivered' ? 'bg-green-100 text-green-800' :
+                  order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                  order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {order.status}
+                </span>
                   )}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.date}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{order.date}</td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div className="flex space-x-2">
                     {editingOrderId === order.id ? (
                       <>
                         <button className="text-green-600 hover:text-green-900" onClick={() => handleStatusSave(order)} disabled={statusLoading}>
@@ -1235,44 +1235,44 @@ const OrdersTable = ({ orders = [] }) => {
                     ) : (
                       <>
                         <button className="text-primary-600 hover:text-primary-900" onClick={() => handleEditClick(order)}><PencilIcon className="w-4 h-4" /></button>
-                        <button className="text-primary-600 hover:text-primary-900"><EyeIcon className="w-4 h-4" /></button>
+                  <button className="text-primary-600 hover:text-primary-900"><EyeIcon className="w-4 h-4" /></button>
                       </>
                     )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-  );
+  </div>
+);
 };
 
 // Users Table Component
 const UsersTable = ({ users = [], loading, error }) => {
   console.log('Users in state:', users);
   return (
-    <div className="bg-white rounded-lg shadow overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200">
-        <h3 className="text-lg font-medium text-gray-900">Users</h3>
-      </div>
-      <div className="overflow-x-auto">
+  <div className="bg-white rounded-lg shadow overflow-hidden">
+    <div className="px-6 py-4 border-b border-gray-200">
+      <h3 className="text-lg font-medium text-gray-900">Users</h3>
+    </div>
+    <div className="overflow-x-auto">
         {loading ? (
           <Skeleton height={40} count={5} />
         ) : error && error !== 'Users retrieved' ? (
           <div className="text-red-600 p-4">{error}</div>
         ) : (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Orders</th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Spent</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
               {Array.isArray(users) && users.length === 0 ? (
                 <tr><td colSpan={4} className="text-center py-8 text-gray-500">No users found.</td></tr>
               ) : Array.isArray(users) ? users.map((user) => (
@@ -1281,14 +1281,14 @@ const UsersTable = ({ users = [], loading, error }) => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.email}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{user.ordersCount || '-'}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${user.totalSpent || '0.00'}</td>
-                </tr>
+          </tr>
               )) : null}
-            </tbody>
-          </table>
+        </tbody>
+      </table>
         )}
-      </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default AdminDashboard;

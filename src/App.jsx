@@ -361,7 +361,7 @@ const App = () => {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <HelmetProvider>
         <Provider store={store}>
-          <Router>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <div className="App">
               {/* Global Toast Notifications */}
               <Toaster

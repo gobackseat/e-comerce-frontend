@@ -64,14 +64,26 @@ export default function SizeGuide() {
 
   return (
     <section ref={ref} className="py-24 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-gray-900 dark:to-gray-950 relative overflow-hidden">
-      <div className="container mx-auto px-4">
+      <svg
+        className="absolute inset-0 w-full h-full z-0 pointer-events-none animate-bgPaws"
+        viewBox="0 0 1440 800"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        style={{ opacity: 0.08 }}
+      >
+        <path d="M-100,100 L1540,100" stroke="#c084fc" strokeWidth="2" strokeDasharray="10 10" fill="none"/>
+        <path d="M-100,300 L1540,300" stroke="#c084fc" strokeWidth="2" strokeDasharray="10 10" fill="none"/>
+        <path d="M-100,500 L1540,500" stroke="#c084fc" strokeWidth="2" strokeDasharray="10 10" fill="none"/>
+        <path d="M-100,700 L1540,700" stroke="#c084fc" strokeWidth="2" strokeDasharray="10 10" fill="none"/>
+      </svg>
+      <div className="container mx-auto px-4 relative z-10">
         <motion.div
           className="text-center mb-20"
           initial={{ opacity: 0, y: 50 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8 }}
         >
-          <Badge className="mb-6 bg-purple-100 text-purple-800 hover:bg-purple-200 px-4 py-2 text-lg">
+          <Badge className="mb-6 bg-purple-100 text-purple-800 hover:bg-purple-200 px-4 py-2 text-lg border-purple-200">
             📏 Size & Compatibility Guide
           </Badge>
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-8">
@@ -92,7 +104,7 @@ export default function SizeGuide() {
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <Card className="border-0 shadow-xl bg-white dark:bg-gray-800">
+          <Card className="border-0 shadow-xl bg-white/80 backdrop-blur-sm dark:bg-gray-800">
             <CardContent className="p-8">
               <div className="flex items-center justify-center mb-8">
                 <Ruler className="w-8 h-8 text-purple-600 mr-3" />
@@ -108,9 +120,12 @@ export default function SizeGuide() {
                     animate={isInView ? { opacity: 1, scale: 1 } : {}}
                     transition={{ duration: 0.5, delay: 0.4 + index * 0.1 }}
                   >
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <motion.div
+                      className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4"
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
                       <span className="text-2xl font-bold text-purple-600">{dim.value.charAt(0)}</span>
-                    </div>
+                    </motion.div>
                     <h4 className="font-semibold text-gray-900 dark:text-white mb-2">{dim.label}</h4>
                     <p className="text-2xl font-bold text-purple-600">{dim.value}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-300">{dim.metric}</p>
@@ -136,12 +151,12 @@ export default function SizeGuide() {
               }}
               whileHover={{
                 y: -5,
-                rotateY: 5,
+                boxShadow: "0 10px 20px rgba(0,0,0,0.1)",
                 transition: { duration: 0.3 },
               }}
             >
               <Card
-                className={`h-full border-0 shadow-lg hover:shadow-xl transition-all duration-300 ${
+                className={`h-full border-0 shadow-lg transition-all duration-300 ${
                   car.status === "recommended"
                     ? "bg-gradient-to-br from-green-50 to-emerald-50 dark:from-gray-800 dark:to-gray-900"
                     : car.status === "compatible"
@@ -153,11 +168,11 @@ export default function SizeGuide() {
                   <motion.div
                     className="text-6xl mb-4"
                     animate={{
-                      rotate: [0, -10, 10, 0],
-                      scale: [1, 1.1, 1],
+                      rotate: [0, -5, 5, 0],
+                      scale: [1, 1.05, 1],
                     }}
                     transition={{
-                      duration: 2,
+                      duration: 2.5,
                       repeat: Number.POSITIVE_INFINITY,
                       delay: index * 0.2,
                     }}
