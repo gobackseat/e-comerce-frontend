@@ -285,6 +285,287 @@ const confirmPayment = async (req, res) => {
   }
 };
 
+// Create payment intent for authenticated users
+const createPaymentIntent = async (req, res) => {
+  try {
+    const { amount, currency, customer, shippingAddress, cartItems, orderSummary } = req.body;
+
+    // Get user's cart to verify
+    const userCartItems = await Cart.find({ userId: req.user._id }).populate('productId');
+    
+    if (!userCartItems || userCartItems.length === 0) {
+      return sendResponseError(400, 'Cart is empty', res);
+    }
+
+    // Validate stock and recalculate totals for security
+    let calculatedTotal = 0;
+    const orderItems = [];
+
+    for (const item of userCartItems) {
+      const product = item.productId;
+      
+      if (!product) {
+        return sendResponseError(400, `Product not found for cart item ${item._id}`, res);
+      }
+
+      if (product.countInStock < item.count) {
+        return sendResponseError(400, `Insufficient stock for ${product.name}`, res);
+      }
+
+      const itemTotal = product.price * item.count;
+      calculatedTotal += itemTotal;
+
+      orderItems.push({
+        name: product.name,
+        price: product.price,
+        quantity: item.count,
+        product: product._id,
+        image: product.image,
+      });
+    }
+
+    // Apply shipping and tax
+    const shipping = calculatedTotal > 100 ? 0 : 15;
+    const tax = calculatedTotal * 0.08;
+    const finalTotal = calculatedTotal + shipping + tax;
+
+    // Security check: verify amount matches calculated total
+    if (Math.abs(amount - Math.round(finalTotal * 100)) > 1) {
+      return sendResponseError(400, 'Amount verification failed', res);
+    }
+
+    // Create order
+    const order = new Order({
+      user: req.user._id,
+      isGuestOrder: false,
+      orderItems,
+      shippingAddress: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        postalCode: shippingAddress.postalCode,
+        country: shippingAddress.country,
+      },
+      customer: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+      },
+      itemsPrice: calculatedTotal,
+      taxPrice: tax,
+      shippingPrice: shipping,
+      totalPrice: finalTotal,
+      paymentMethod: 'stripe',
+      status: 'pending',
+    });
+
+    await order.save();
+
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(finalTotal * 100),
+      currency: currency || 'usd',
+      customer_email: req.user.email,
+      metadata: {
+        orderId: order._id.toString(),
+        userId: req.user._id.toString(),
+        customerName: `${customer.firstName} ${customer.lastName}`,
+      },
+      description: `Order #${order._id}`,
+    });
+
+    // Update order with payment intent ID
+    order.paymentResult = {
+      id: paymentIntent.id,
+      status: 'pending',
+      update_time: new Date().toISOString(),
+      email_address: req.user.email,
+    };
+    await order.save();
+
+    console.log('Payment intent created for user:', req.user._id, 'Order:', order._id);
+
+    res.json({
+      success: true,
+      client_secret: paymentIntent.client_secret,
+      orderId: order._id,
+      amount: finalTotal,
+    });
+
+  } catch (error) {
+    console.error('Create payment intent error:', error);
+    sendResponseError(500, `Payment intent creation failed: ${error.message}`, res);
+  }
+};
+
+// Create payment intent for guest users
+const createGuestPaymentIntent = async (req, res) => {
+  try {
+    const { amount, currency, customer, shippingAddress, cartItems, orderSummary } = req.body;
+
+    if (!cartItems || cartItems.length === 0) {
+      return sendResponseError(400, 'Cart is empty', res);
+    }
+
+    // Validate stock and recalculate totals for security
+    let calculatedTotal = 0;
+    const orderItems = [];
+
+    for (const item of cartItems) {
+      const product = await Product.findById(item.productId);
+      
+      if (!product) {
+        return sendResponseError(400, `Product not found: ${item.productId}`, res);
+      }
+
+      if (product.countInStock < item.count) {
+        return sendResponseError(400, `Insufficient stock for ${product.name}`, res);
+      }
+
+      const itemTotal = product.price * item.count;
+      calculatedTotal += itemTotal;
+
+      orderItems.push({
+        name: product.name,
+        price: product.price,
+        quantity: item.count,
+        product: product._id,
+        image: product.image,
+      });
+    }
+
+    // Apply shipping and tax
+    const shipping = calculatedTotal > 100 ? 0 : 15;
+    const tax = calculatedTotal * 0.08;
+    const finalTotal = calculatedTotal + shipping + tax;
+
+    // Security check: verify amount matches calculated total
+    if (Math.abs(amount - Math.round(finalTotal * 100)) > 1) {
+      return sendResponseError(400, 'Amount verification failed', res);
+    }
+
+    // Create guest order
+    const order = new Order({
+      orderItems,
+      shippingAddress: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        address: shippingAddress.address,
+        city: shippingAddress.city,
+        postalCode: shippingAddress.postalCode,
+        country: shippingAddress.country,
+      },
+      customer: {
+        firstName: customer.firstName,
+        lastName: customer.lastName,
+        email: customer.email,
+        phone: customer.phone,
+      },
+      itemsPrice: calculatedTotal,
+      taxPrice: tax,
+      shippingPrice: shipping,
+      totalPrice: finalTotal,
+      paymentMethod: 'stripe',
+      isGuestOrder: true,
+      status: 'pending',
+    });
+
+    await order.save();
+
+    // Create payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: Math.round(finalTotal * 100),
+      currency: currency || 'usd',
+      receipt_email: customer.email,
+      metadata: {
+        orderId: order._id.toString(),
+        isGuestOrder: 'true',
+        customerName: `${customer.firstName} ${customer.lastName}`,
+      },
+      description: `Guest Order #${order._id}`,
+    });
+
+    // Update order with payment intent ID
+    order.paymentResult = {
+      id: paymentIntent.id,
+      status: 'pending',
+      update_time: new Date().toISOString(),
+      email_address: customer.email,
+    };
+    await order.save();
+
+    console.log('Guest payment intent created for order:', order._id);
+
+    res.json({
+      success: true,
+      client_secret: paymentIntent.client_secret,
+      orderId: order._id,
+      amount: finalTotal,
+    });
+
+  } catch (error) {
+    console.error('Create guest payment intent error:', error);
+    sendResponseError(500, `Payment intent creation failed: ${error.message}`, res);
+  }
+};
+
+// Confirm payment completion
+const confirmPayment = async (req, res) => {
+  try {
+    const { paymentIntentId, orderId } = req.body;
+
+    // Retrieve payment intent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    
+    if (paymentIntent.status !== 'succeeded') {
+      return sendResponseError(400, 'Payment not completed', res);
+    }
+
+    // Find and update order
+    const order = await Order.findById(orderId);
+    
+    if (!order) {
+      return sendResponseError(404, 'Order not found', res);
+    }
+
+    // Update order status
+    order.isPaid = true;
+    order.paidAt = new Date();
+    order.status = 'processing';
+    order.paymentResult.status = 'completed';
+    order.paymentResult.update_time = new Date().toISOString();
+
+    // Update product stock
+    for (const item of order.orderItems) {
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: { countInStock: -item.quantity },
+        $inc: { purchaseCount: item.quantity || 1 },
+      });
+    }
+
+    // Clear user's cart (only for authenticated users)
+    if (order.user && !order.isGuestOrder) {
+      await Cart.deleteMany({ userId: order.user });
+    }
+
+    await order.save();
+
+    console.log('Payment confirmed for order:', order._id);
+
+    res.json({
+      success: true,
+      order,
+      message: 'Payment confirmed and order completed',
+    });
+
+  } catch (error) {
+    console.error('Confirm payment error:', error);
+    sendResponseError(500, 'Payment confirmation failed', res);
+  }
+};
+
 // Single-click checkout with Stripe (authenticated users) - LEGACY
 const createCheckoutSession = async (req, res) => {
   try {
