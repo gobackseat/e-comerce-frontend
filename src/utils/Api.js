@@ -212,14 +212,27 @@ export async function createGuestCheckoutSession(checkoutData) {
 
 
 
-export async function verifyPayment(sessionId, token) {
+export async function verifyPayment(sessionId, token, paymentIntentData) {
   try {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const res = await axios.get(
-      `${config.baseURL}/checkout/verify/${sessionId}`,
-      { headers, withCredentials: true }
-    );
-    return res.data;
+    
+    if (paymentIntentData && paymentIntentData.orderId) {
+      // New payment intent flow - get order by ID
+      const res = await axios.get(
+        `${config.baseURL}/orders/${paymentIntentData.orderId}`,
+        { headers, withCredentials: true }
+      );
+      return { success: true, order: res.data };
+    } else if (sessionId) {
+      // Legacy session flow
+      const res = await axios.get(
+        `${config.baseURL}/checkout/verify/${sessionId}`,
+        { headers, withCredentials: true }
+      );
+      return res.data;
+    } else {
+      throw new Error('No valid payment information provided');
+    }
   } catch (err) {
     throw err.response?.data || err;
   }

@@ -13,9 +13,15 @@ export default function ThankYouPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    // Check for new payment intent flow parameters
+    const paymentIntentId = searchParams.get('payment_intent');
+    const orderId = searchParams.get('order_id');
+    
+    // Check for legacy session flow parameter
     const sessionId = searchParams.get('session_id');
-    if (!sessionId) {
-      setError('No session ID found');
+    
+    if (!paymentIntentId && !orderId && !sessionId) {
+      setError('No payment information found');
       setLoading(false);
       return;
     }
@@ -24,19 +30,35 @@ export default function ThankYouPage() {
       try {
         const token = getToken();
         
-        // First check the session status (works for both authenticated and guest users)
-        const statusResult = await getCheckoutStatus(sessionId, token);
-        
-        if (statusResult.session.payment_status === 'paid') {
-          // Verify the payment and get order details
-          const result = await verifyPayment(sessionId, token);
+        if (paymentIntentId && orderId) {
+          // New payment intent flow
+          console.log('Verifying payment intent:', paymentIntentId, 'Order:', orderId);
+          
+          // For the new flow, we can directly fetch the order by ID
+          // since the payment was already confirmed in the checkout process
+          const result = await verifyPayment(null, token, { paymentIntentId, orderId });
+          
           if (result.success) {
             setOrder(result.order);
           } else {
             setError('Payment verification failed');
           }
-        } else {
-          setError('Payment not completed');
+        } else if (sessionId) {
+          // Legacy session flow
+          console.log('Verifying session:', sessionId);
+          
+          const statusResult = await getCheckoutStatus(sessionId, token);
+          
+          if (statusResult.session.payment_status === 'paid') {
+            const result = await verifyPayment(sessionId, token);
+            if (result.success) {
+              setOrder(result.order);
+            } else {
+              setError('Payment verification failed');
+            }
+          } else {
+            setError('Payment not completed');
+          }
         }
       } catch (err) {
         console.error('Verification error:', err);
