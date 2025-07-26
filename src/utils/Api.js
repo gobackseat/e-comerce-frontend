@@ -148,17 +148,7 @@ export async function createOrder(orderData, token) {
   }
 }
 
-export async function createPaymentIntent(orderId, token) {
-  try {
-    const res = await axios.post(`${config.baseURL}/orders/${orderId}/payment-intent`, {}, {
-      headers: { Authorization: `Bearer ${token}` },
-      withCredentials: true,
-    });
-    return res.data.data;
-  } catch (err) {
-    throw err.response?.data || err;
-  }
-}
+
 
 export async function fetchWishlist(token) {
   try {
