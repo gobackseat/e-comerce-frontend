@@ -133,24 +133,19 @@ const createCheckoutSession = async (req, res) => {
 
     await order.save();
 
-    // Get checkout URLs from environment/request
-    const urls = getCheckoutUrls(req.body);
-    const urlValidation = validateUrls(urls);
+    // Use hardcoded production URLs to ensure reliability
+    const successUrl = 'https://gobackseatextender.us/thank-you?session_id={CHECKOUT_SESSION_ID}';
+    const cancelUrl = 'https://gobackseatextender.us/';
     
-    if (!urlValidation.valid) {
-      console.error('URL validation failed:', urlValidation.error);
-      return sendResponseError(400, `Invalid URL format: ${urlValidation.error}`, res);
-    }
-
-    console.log('Creating authenticated checkout session with URLs:', urls);
+    console.log('Creating authenticated checkout session with URLs:', { successUrl, cancelUrl });
 
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: urls.successUrl,
-      cancel_url: urls.cancelUrl,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         orderId: order._id.toString(),
         userId: req.user._id.toString(),
@@ -330,24 +325,19 @@ const createGuestCheckoutSession = async (req, res) => {
 
     await order.save();
 
-    // Get checkout URLs from environment/request
-    const urls = getCheckoutUrls(req.body);
-    const urlValidation = validateUrls(urls);
+    // Use hardcoded production URLs to ensure reliability
+    const successUrl = 'https://gobackseatextender.us/thank-you?session_id={CHECKOUT_SESSION_ID}';
+    const cancelUrl = 'https://gobackseatextender.us/';
     
-    if (!urlValidation.valid) {
-      console.error('Guest checkout URL validation failed:', urlValidation.error);
-      return sendResponseError(400, `Invalid URL format: ${urlValidation.error}`, res);
-    }
-
-    console.log('Creating guest checkout session with URLs:', urls);
+    console.log('Creating guest checkout session with URLs:', { successUrl, cancelUrl });
     
     // Create Stripe checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items: lineItems,
       mode: 'payment',
-      success_url: urls.successUrl,
-      cancel_url: urls.cancelUrl,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       metadata: {
         orderId: order._id.toString(),
         isGuestOrder: 'true',

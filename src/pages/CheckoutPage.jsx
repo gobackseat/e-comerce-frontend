@@ -161,7 +161,7 @@ export default function CheckoutPage() {
     if (!validateForm()) {
       return;
     }
-
+    
     setIsProcessing(true);
     setCurrentStep(2);
 
