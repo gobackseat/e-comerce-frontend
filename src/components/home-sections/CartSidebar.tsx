@@ -2,13 +2,9 @@
 
 import React from "react";
 import { X, Plus, Minus, Trash2, ShoppingBag, CreditCard } from "lucide-react";
-import { Button } from "../ui/button.jsx";
-import { Badge } from "../ui/badge.jsx";
-import { Textarea } from "../ui/textarea.jsx";
-import { Label } from "../ui/label.jsx";
+import { Button } from "./ui/button.tsx";
+import { Badge } from "./ui/badge.tsx";
 import { useCart } from "../../contexts/CartContext.jsx";
-import { createCheckoutSession, createGuestCheckoutSession } from "../../utils/Api.js";
-import { getToken } from "../../utils/localstorage.js";
 
 export default function CartSidebar() {
   const {
@@ -24,57 +20,10 @@ export default function CartSidebar() {
     error,
   } = useCart();
 
-  const [isCheckingOut, setIsCheckingOut] = React.useState(false);
-
-  const handleCheckout = async () => {
-    setIsCheckingOut(true);
-    try {
-      const token = getToken();
-      
-      // Prepare checkout data
-      const checkoutData = {
-        shippingAddress: {
-          address: "123 Main St",
-          city: "New York",
-          postalCode: "10001",
-          country: "US"
-        },
-        // Include cart items for guest checkout
-        cartItems: cart.map(item => ({
-          productId: item.productId?._id || item.productId || item.id,
-          count: item.count || 1,
-          price: item.productId?.price || item.price,
-          name: item.productId?.name || item.name
-        }))
-      };
-
-      let result;
-      if (token) {
-        // Authenticated checkout
-        result = await createCheckoutSession(checkoutData, token);
-      } else {
-        // Guest checkout
-        result = await createGuestCheckoutSession(checkoutData);
-      }
-      
-      if (result.success && result.sessionUrl) {
-        // Redirect to Stripe checkout
-        window.location.href = result.sessionUrl;
-      } else {
-        alert("Failed to create checkout session: " + (result.error || "Unknown error"));
-      }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      if (error.status === 401 || error.message?.includes('unauthorized')) {
-        alert("Please log in again to checkout");
-        // Clear invalid token
-        localStorage.removeItem('E_COMMERCE_TOKEN');
-      } else {
-        alert("Checkout failed: " + (error.message || "Unknown error"));
-      }
-    } finally {
-      setIsCheckingOut(false);
-    }
+  const handleCheckout = () => {
+    setIsCartOpen(false);
+    // Navigate to checkout page instead of direct checkout
+    window.location.href = '/checkout';
   };
 
   if (!isCartOpen) return null;
@@ -186,19 +135,10 @@ export default function CartSidebar() {
                 <Button
                   className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white"
                   onClick={handleCheckout}
-                  disabled={isCheckingOut || loading}
+                  disabled={loading}
                 >
-                  {isCheckingOut ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      Secure Checkout
-                    </>
-                  )}
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  Secure Checkout
                 </Button>
                 <Button variant="outline" className="w-full bg-transparent" onClick={() => setIsCartOpen(false)}>
                   Continue Shopping

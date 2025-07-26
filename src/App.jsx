@@ -214,19 +214,19 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Protected User Routes */}
+        {/* Checkout Route - accessible to both authenticated and guest users */}
         <Route
           path="/checkout"
           element={
-            <ProtectedRoute>
-              <PublicLayout>
-                <Suspense fallback={<LoadingFallback />}>
-                  <CheckoutPage />
-                </Suspense>
-              </PublicLayout>
-            </ProtectedRoute>
+            <PublicLayout>
+              <Suspense fallback={<LoadingFallback />}>
+                <CheckoutPage />
+              </Suspense>
+            </PublicLayout>
           }
         />
+
+        {/* Protected User Routes */}
 
         <Route
           path="/thank-you"
