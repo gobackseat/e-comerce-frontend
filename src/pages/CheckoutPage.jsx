@@ -192,27 +192,16 @@ export default function CheckoutPage() {
           shipping: shipping,
           tax: tax,
           total: total
-        },
-        success_url: "https://gobackseatextender.us/thank-you",
-        cancel_url: "https://gobackseatextender.us/"
+        }
       };
 
-             // Enhanced logging for debugging
-       console.log('=== CHECKOUT DEBUG INFO ===');
-       console.log('User token:', token ? 'Present' : 'Not present');
-       console.log('Cart items:', cart.length);
-       console.log('Current domain:', window.location.origin);
-               console.log('Success URL:', checkoutData.success_url);
-        console.log('Cancel URL:', checkoutData.cancel_url);
-        console.log('URL validation test:');
-        try {
-          console.log('- Success URL valid:', new URL(checkoutData.success_url).href);
-          console.log('- Cancel URL valid:', new URL(checkoutData.cancel_url).href);
-        } catch (e) {
-          console.error('URL validation failed:', e);
-        }
-       console.log('Checkout data:', JSON.stringify(checkoutData, null, 2));
-       console.log('API Base URL:', window.location.origin);
+      // Enhanced logging for debugging
+      console.log('=== CHECKOUT DEBUG INFO ===');
+      console.log('User token:', token ? 'Present' : 'Not present');
+      console.log('Cart items:', cart.length);
+      console.log('Current domain:', window.location.origin);
+      console.log('Checkout data:', JSON.stringify(checkoutData, null, 2));
+      console.log('API Base URL:', window.location.origin);
 
       let result;
       if (token) {
