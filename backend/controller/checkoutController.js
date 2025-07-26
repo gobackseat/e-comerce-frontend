@@ -463,6 +463,52 @@ const verifyPayment = async (req, res) => {
   }
 };
 
+// Verify payment intent for thank you page
+const verifyPaymentIntent = async (req, res) => {
+  try {
+    const { paymentIntentId, orderId } = req.query;
+    
+    if (!paymentIntentId || !orderId) {
+      return sendResponseError(400, 'Payment intent ID and order ID are required', res);
+    }
+
+    // Retrieve payment intent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    
+    if (paymentIntent.status !== 'succeeded') {
+      return sendResponseError(400, 'Payment not completed', res);
+    }
+
+    // Find the order (works for both user and guest orders)
+    const order = await Order.findById(orderId)
+      .populate('orderItems.product', 'name images');
+    
+    if (!order) {
+      return sendResponseError(404, 'Order not found', res);
+    }
+
+    // Verify the payment intent belongs to this order
+    if (order.paymentResult.id !== paymentIntentId) {
+      return sendResponseError(400, 'Payment intent does not match order', res);
+    }
+
+    res.json({
+      success: true,
+      order,
+      paymentIntent: {
+        id: paymentIntent.id,
+        status: paymentIntent.status,
+        amount: paymentIntent.amount,
+      },
+      message: 'Payment verified successfully',
+    });
+
+  } catch (error) {
+    console.error('Payment intent verification error:', error);
+    sendResponseError(500, 'Payment intent verification failed', res);
+  }
+};
+
 // Get checkout session status
 const getCheckoutStatus = async (req, res) => {
   try {
@@ -709,6 +755,7 @@ module.exports = {
   createPaymentIntent,
   createGuestPaymentIntent,
   confirmPayment,
+  verifyPaymentIntent,
   createCheckoutSession,
   createGuestCheckoutSession,
   verifyPayment,

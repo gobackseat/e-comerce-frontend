@@ -216,13 +216,13 @@ export async function verifyPayment(sessionId, token, paymentIntentData) {
   try {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     
-    if (paymentIntentData && paymentIntentData.orderId) {
-      // New payment intent flow - get order by ID
+    if (paymentIntentData && paymentIntentData.orderId && paymentIntentData.paymentIntentId) {
+      // New payment intent flow - use dedicated verification endpoint
       const res = await axios.get(
-        `${config.baseURL}/orders/${paymentIntentData.orderId}`,
+        `${config.baseURL}/checkout/verify-payment-intent?paymentIntentId=${paymentIntentData.paymentIntentId}&orderId=${paymentIntentData.orderId}`,
         { headers, withCredentials: true }
       );
-      return { success: true, order: res.data };
+      return res.data;
     } else if (sessionId) {
       // Legacy session flow
       const res = await axios.get(
