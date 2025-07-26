@@ -220,6 +220,32 @@ export async function createGuestCheckoutSession(checkoutData) {
   }
 }
 
+export async function createCheckoutPaymentIntent(checkoutData, token) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-payment-intent`,
+      checkoutData,
+      { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function createGuestPaymentIntent(checkoutData) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-guest-payment-intent`,
+      checkoutData,
+      { withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
 export async function verifyPayment(sessionId, token) {
   try {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
