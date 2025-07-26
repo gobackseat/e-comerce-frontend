@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../contexts/CartContext.jsx";
-import { createCheckoutPaymentIntent, createGuestPaymentIntent } from "../utils/Api.js";
+import { createCheckoutSession, createGuestCheckoutSession } from "../utils/Api.js";
 import { getToken } from "../utils/localstorage.js";
 import { Button } from "../components/home-sections/ui/button.tsx";
 import { Input } from "../components/home-sections/ui/input.tsx";
@@ -9,26 +9,15 @@ import { Label } from "../components/home-sections/ui/label.tsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/home-sections/ui/card.tsx";
 import { Separator } from "../components/home-sections/ui/separator.tsx";
 import { CreditCard, User, MapPin, Phone, Mail, ArrowLeft, Lock } from "lucide-react";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 
-// Initialize Stripe
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || 'pk_test_your_stripe_publishable_key');
-
-// Payment Form Component
-const PaymentForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, onError }) => {
-  const stripe = useStripe();
-  const elements = useElements();
+// Checkout Form Component
+const CheckoutForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, onError }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!stripe || !elements) {
-      return;
-    }
-
     setIsProcessing(true);
     setError(null);
 
@@ -70,69 +59,29 @@ const PaymentForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, on
       let result;
       if (token) {
         // Authenticated checkout
-        result = await createCheckoutPaymentIntent(checkoutData, token);
+        result = await createCheckoutSession(checkoutData, token);
       } else {
         // Guest checkout
-        result = await createGuestPaymentIntent(checkoutData);
+        result = await createGuestCheckoutSession(checkoutData);
       }
       
-      if (result.success && result.clientSecret) {
-        // Confirm the payment with Stripe
-        const { error: paymentError, paymentIntent } = await stripe.confirmCardPayment(
-          result.clientSecret,
-          {
-            payment_method: {
-              card: elements.getElement(CardElement),
-              billing_details: {
-                name: `${formData.firstName} ${formData.lastName}`,
-                email: formData.email,
-                phone: formData.phone,
-                address: {
-                  line1: formData.address,
-                  city: formData.city,
-                  state: formData.state,
-                  postal_code: formData.postalCode,
-                  country: formData.country,
-                },
-              },
-            },
-          }
-        );
-
-        if (paymentError) {
-          setError(paymentError.message);
-        } else if (paymentIntent.status === 'succeeded') {
-          onSuccess(paymentIntent);
-        }
+      if (result.success && result.sessionUrl) {
+        // Redirect to Stripe checkout
+        window.location.href = result.sessionUrl;
       } else {
-        setError("Failed to create payment session: " + (result.error || "Unknown error"));
+        setError("Failed to create checkout session: " + (result.error || "Unknown error"));
       }
     } catch (error) {
-      console.error("Payment error:", error);
+      console.error("Checkout error:", error);
       if (error.status === 401 || error.message?.includes('unauthorized')) {
         setError("Please log in again to checkout");
         localStorage.removeItem('E_COMMERCE_TOKEN');
       } else {
-        setError("Payment failed: " + (error.message || "Unknown error"));
+        setError("Checkout failed: " + (error.message || "Unknown error"));
       }
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const cardElementOptions = {
-    style: {
-      base: {
-        fontSize: '16px',
-        color: '#424770',
-        '::placeholder': {
-          color: '#aab7c4',
-        },
-      },
-      invalid: {
-        color: '#9e2146',
-      },
-    },
   };
 
   return (
@@ -249,7 +198,7 @@ const PaymentForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, on
         </CardContent>
       </Card>
 
-      {/* Payment Information */}
+      {/* Payment Notice */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
@@ -263,9 +212,10 @@ const PaymentForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, on
               <Lock className="w-4 h-4 mr-2 text-green-600" />
               <span className="text-sm text-gray-600">Secure payment powered by Stripe</span>
             </div>
-            <div className="p-3 border rounded bg-white">
-              <CardElement options={cardElementOptions} />
-            </div>
+            <p className="text-sm text-gray-600">
+              You will be redirected to Stripe's secure payment page to complete your purchase.
+              Your payment information will be handled securely by Stripe.
+            </p>
           </div>
           
           {error && (
@@ -280,7 +230,7 @@ const PaymentForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, on
       <Button
         type="submit"
         className="w-full bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white py-3"
-        disabled={isProcessing || !stripe}
+        disabled={isProcessing}
       >
         {isProcessing ? (
           <>
@@ -321,11 +271,11 @@ export default function CheckoutPage() {
     }
   }, [getTotalItems, navigate]);
 
-  const handlePaymentSuccess = (paymentIntent) => {
+  const handlePaymentSuccess = (sessionData) => {
     // Clear cart after successful payment
     clearCart();
-    // Redirect to thank you page with payment details
-    navigate(`/thank-you?session_id=${paymentIntent.id}`);
+    // Redirect to thank you page with session details
+    navigate(`/thank-you?session_id=${sessionData.sessionId}`);
   };
 
   const handlePaymentError = (error) => {
@@ -363,16 +313,14 @@ export default function CheckoutPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Checkout Form */}
           <div className="lg:col-span-2">
-            <Elements stripe={stripePromise}>
-              <PaymentForm
-                formData={formData}
-                setFormData={setFormData}
-                cart={cart}
-                getTotalPrice={getTotalPrice}
-                onSuccess={handlePaymentSuccess}
-                onError={handlePaymentError}
-              />
-            </Elements>
+            <CheckoutForm
+              formData={formData}
+              setFormData={setFormData}
+              cart={cart}
+              getTotalPrice={getTotalPrice}
+              onSuccess={handlePaymentSuccess}
+              onError={handlePaymentError}
+            />
           </div>
 
           {/* Order Summary */}
