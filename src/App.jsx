@@ -32,6 +32,7 @@ const OrdersPage = React.lazy(() => import("./pages/OrdersPage"));
 const OrderDetailsPage = React.lazy(() => import("./pages/OrderDetailsPage"));
 const NotFoundPage = React.lazy(() => import("./pages/NotFoundPage"));
 const WishlistPage = React.lazy(() => import("./pages/WishlistPage.jsx"));
+const ThankYouPage = React.lazy(() => import("./pages/ThankYouPage"));
 
 // Admin Components
 const AdminDashboard = React.lazy(
@@ -224,6 +225,17 @@ const AppRoutes = () => {
                 </Suspense>
               </PublicLayout>
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/thank-you"
+          element={
+            <PublicLayout>
+              <Suspense fallback={<LoadingFallback />}>
+                <ThankYouPage />
+              </Suspense>
+            </PublicLayout>
           }
         />
 

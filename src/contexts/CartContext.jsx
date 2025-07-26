@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { fetchCart, addToCart as apiAddToCart, removeFromCart as apiRemoveFromCart, updateCartItem as apiUpdateCartItem } from '../utils/Api';
+import { fetchCart, addToCart as apiAddToCart, removeFromCart as apiRemoveFromCart, updateCartItem as apiUpdateCartItem, checkAuth } from '../utils/Api';
 
 const GUEST_CART_KEY = 'guest_cart';
 
@@ -23,7 +23,7 @@ export const CartProvider = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('E_COMMERCE_TOKEN');
 
   // Helper: guest cart localStorage
   const getGuestCart = () => {
@@ -46,13 +46,24 @@ export const CartProvider = ({ children }) => {
     setError(null);
     try {
       if (token) {
+        console.log('Fetching cart with token:', token ? token.substring(0, 20) + '...' : 'No token');
         const items = await fetchCart(token);
+        console.log('Cart items received:', items);
         setCart(items);
       } else {
+        console.log('No token, using guest cart');
         setCart(getGuestCart());
       }
     } catch (err) {
-      setError(err.message || 'Failed to fetch cart');
+      console.error('Cart fetch error:', err);
+      // If it's an authentication error, clear the token and use guest cart
+      if (err.status === 401 || err.message?.includes('unauthorized')) {
+        console.log('Authentication failed, clearing token and using guest cart');
+        localStorage.removeItem('E_COMMERCE_TOKEN');
+        setCart(getGuestCart());
+      } else {
+        setError(err.message || 'Failed to fetch cart');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,7 +71,25 @@ export const CartProvider = ({ children }) => {
 
   // On mount or token change, fetch cart
   useEffect(() => {
-    fetchCartItems();
+    const verifyAndFetchCart = async () => {
+      if (token) {
+        try {
+          // First verify the token is valid
+          await checkAuth(token);
+          // If valid, fetch cart
+          await fetchCartItems();
+        } catch (err) {
+          console.error('Token verification failed:', err);
+          // Clear invalid token
+          localStorage.removeItem('E_COMMERCE_TOKEN');
+          setCart(getGuestCart());
+        }
+      } else {
+        fetchCartItems();
+      }
+    };
+    
+    verifyAndFetchCart();
   }, [token, fetchCartItems]);
 
   // On login, merge guest cart with backend

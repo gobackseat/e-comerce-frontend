@@ -77,25 +77,37 @@ const putRequest = async (path, body) => {
 // All axios-based functions should use config.baseURL
 export async function fetchCart(token) {
   try {
+    console.log('Fetching cart with token:', token ? token.substring(0, 20) + '...' : 'No token');
     const res = await axios.get(`${config.baseURL}/cart`, {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
-    return res.data.data;
+    console.log('Cart response:', res.data);
+    return res.data.carts || [];
   } catch (err) {
+    console.error('Cart fetch error:', err.response?.data || err);
+    // Check if response is not JSON
+    if (err.response?.data && typeof err.response.data === 'string' && err.response.data.startsWith('PK')) {
+      console.error('Received binary data instead of JSON');
+      throw new Error('Server returned invalid response format');
+    }
     throw err.response?.data || err;
   }
 }
 
-export async function addToCart(productId, count, token) {
+export async function addToCart(item, token) {
   try {
+    console.log('Adding to cart with token:', token ? token.substring(0, 20) + '...' : 'No token');
+    console.log('Adding item:', item);
     const res = await axios.post(
       `${config.baseURL}/cart`,
-      { productId, count },
+      { productId: item.productId || item.id, count: item.count || 1 },
       { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
     );
-    return res.data.data;
+    console.log('Add to cart response:', res.data);
+    return res.data.cart || res.data;
   } catch (err) {
+    console.error('Add to cart error:', err.response?.data || err);
     throw err.response?.data || err;
   }
 }
@@ -112,8 +124,16 @@ export async function removeFromCart(cartId, token) {
 }
 
 export async function updateCartItem({ productId, count }, token) {
-  // Same as addToCart, since backend upserts
-  return addToCart({ productId, count }, token);
+  try {
+    const res = await axios.put(
+      `${config.baseURL}/cart`,
+      { productId, count },
+      { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+    );
+    return res.data.cart || res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
 }
 
 export async function createOrder(orderData, token) {
@@ -169,6 +189,70 @@ export async function removeFromWishlist(productId, token) {
       headers: { Authorization: `Bearer ${token}` },
       withCredentials: true,
     });
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function createCheckoutSession(checkoutData, token) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-session`,
+      checkoutData,
+      { headers: { Authorization: `Bearer ${token}` }, withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function createGuestCheckoutSession(checkoutData) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-guest-session`,
+      checkoutData,
+      { withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function verifyPayment(sessionId, token) {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(
+      `${config.baseURL}/checkout/verify/${sessionId}`,
+      { headers, withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function getCheckoutStatus(sessionId, token) {
+  try {
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const res = await axios.get(
+      `${config.baseURL}/checkout/status/${sessionId}`,
+      { headers, withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+export async function checkAuth(token) {
+  try {
+    const res = await axios.get(`${config.baseURL}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      withCredentials: true,
+    });
+    return res.data;
   } catch (err) {
     throw err.response?.data || err;
   }

@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_API_URL || 'https://gobackseatextender.us/api';
 
 if (!apiUrl) {
   // You can throw an error or log a warning here
@@ -9,5 +9,7 @@ if (!apiUrl) {
 const config = {
   baseURL: apiUrl,
 };
+
+console.log('API Base URL:', config.baseURL);
 
 export { config };

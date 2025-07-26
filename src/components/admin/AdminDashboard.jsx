@@ -113,6 +113,75 @@ const AdminDashboard = () => {
   const notifPanelRef = useRef();
   const location = useLocation();
   const navigate = useNavigate();
+  const [errorLogs, setErrorLogs] = useState([]);
+  const [errorLogsLoading, setErrorLogsLoading] = useState(false);
+  const [errorLogsError, setErrorLogsError] = useState(null);
+  const [paymentLogs, setPaymentLogs] = useState([]);
+  const [paymentLogsLoading, setPaymentLogsLoading] = useState(false);
+  const [paymentLogsError, setPaymentLogsError] = useState(null);
+  const [webhookLogs, setWebhookLogs] = useState([]);
+  const [webhookLogsLoading, setWebhookLogsLoading] = useState(false);
+  const [webhookLogsError, setWebhookLogsError] = useState(null);
+
+  // Fetch error logs when viewing error logs tab
+  useEffect(() => {
+    if (currentView === 'error-logs') {
+      setErrorLogsLoading(true);
+      setErrorLogsError(null);
+      let token = localStorage.getItem('token');
+      if (!token) token = getCookie('token');
+      fetch(`${config.baseURL}/admin/error-logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setErrorLogs(data.logs);
+          else setErrorLogsError(data.error || 'Failed to fetch error logs');
+        })
+        .catch(err => setErrorLogsError(err.message || 'Failed to fetch error logs'))
+        .finally(() => setErrorLogsLoading(false));
+    }
+  }, [currentView]);
+
+  // Fetch payment logs
+  useEffect(() => {
+    if (currentView === 'payment-logs') {
+      setPaymentLogsLoading(true);
+      setPaymentLogsError(null);
+      let token = localStorage.getItem('token');
+      if (!token) token = getCookie('token');
+      fetch(`${config.baseURL}/admin/payment-logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setPaymentLogs(data.logs);
+          else setPaymentLogsError(data.error || 'Failed to fetch payment logs');
+        })
+        .catch(err => setPaymentLogsError(err.message || 'Failed to fetch payment logs'))
+        .finally(() => setPaymentLogsLoading(false));
+    }
+  }, [currentView]);
+
+  // Fetch webhook logs
+  useEffect(() => {
+    if (currentView === 'webhook-logs') {
+      setWebhookLogsLoading(true);
+      setWebhookLogsError(null);
+      let token = localStorage.getItem('token');
+      if (!token) token = getCookie('token');
+      fetch(`${config.baseURL}/admin/webhook-logs`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setWebhookLogs(data.logs);
+          else setWebhookLogsError(data.error || 'Failed to fetch webhook logs');
+        })
+        .catch(err => setWebhookLogsError(err.message || 'Failed to fetch webhook logs'))
+        .finally(() => setWebhookLogsLoading(false));
+    }
+  }, [currentView]);
 
   useEffect(() => {
     let intervalId;
@@ -256,7 +325,7 @@ const AdminDashboard = () => {
     });
   };
 
-  // Sidebar navigation items
+  // Sidebar navigation items (split into nav and log panels for clarity)
   const navigationItems = [
     { id: 'dashboard', name: 'Dashboard', icon: HomeIcon, iconSolid: HomeIconSolid, href: '/admin' },
     { id: 'product', name: 'Product', icon: ShoppingBagIcon, iconSolid: ShoppingBagIconSolid, href: '/admin/product' },
@@ -264,8 +333,42 @@ const AdminDashboard = () => {
     { id: 'users', name: 'Users', icon: UserGroupIcon, iconSolid: UserGroupIconSolid, href: '/admin/users' },
     { id: 'analytics', name: 'Analytics', icon: ChartBarIcon, iconSolid: ChartBarIconSolid, href: '/admin/analytics' },
     { id: 'mails', name: 'Mails', icon: EnvelopeIcon, iconSolid: EnvelopeIcon, href: '/admin/mails' },
-    { id: 'settings', name: 'Settings', icon: CogIcon, iconSolid: CogIconSolid, href: '/admin/settings' }
+    { id: 'settings', name: 'Settings', icon: CogIcon, iconSolid: CogIconSolid, href: '/admin/settings' },
   ];
+  const logPanelItems = [
+    { name: 'Error Logs', icon: ExclamationTriangleIcon, view: 'error-logs' },
+    { name: 'Payment Logs', icon: CurrencyDollarIcon, view: 'payment-logs' },
+    { name: 'Webhook Logs', icon: DocumentTextIcon, view: 'webhook-logs' },
+  ];
+
+  // Helper to render sidebar items
+  const renderSidebarItems = () => (
+    <>
+      {navigationItems.map(item => (
+        <li key={item.id}>
+          <Link
+            to={item.href}
+            className={`flex items-center gap-3 px-4 py-2 rounded-lg transition-colors ${location.pathname === item.href ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-gray-700 hover:bg-orange-50'}`}
+          >
+            <item.icon className="w-5 h-5" />
+            {item.name}
+          </Link>
+        </li>
+      ))}
+      <div className="mt-6 mb-2 px-4 text-xs text-gray-400 uppercase tracking-wider">Logs & Events</div>
+      {logPanelItems.map(item => (
+        <li key={item.view}>
+          <button
+            className={`flex items-center gap-3 px-4 py-2 rounded-lg w-full text-left transition-colors ${currentView === item.view ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-gray-700 hover:bg-orange-50'}`}
+            onClick={() => setCurrentView(item.view)}
+          >
+            <item.icon className="w-5 h-5" />
+            {item.name}
+          </button>
+        </li>
+      ))}
+    </>
+  );
 
   // Enhanced stat card with tooltip and clickable navigation
   const EnhancedStatsCard = ({ title, value, change, trend, icon: Icon, tooltip, onClick }) => (
@@ -867,6 +970,118 @@ const AdminDashboard = () => {
       case 'analytics': return <EnhancedAnalytics />;
       case 'mails': return <MailAdminPanel />;
       case 'settings': return <Settings />;
+      case 'error-logs':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4 flex items-center"><ExclamationTriangleIcon className="w-6 h-6 mr-2 text-red-500" /> Error Logs</h2>
+            {errorLogsLoading ? (
+              <div>Loading error logs...</div>
+            ) : errorLogsError ? (
+              <div className="text-red-600">{errorLogsError}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-3 py-2 border">Message</th>
+                      <th className="px-3 py-2 border">Level</th>
+                      <th className="px-3 py-2 border">Timestamp</th>
+                      <th className="px-3 py-2 border">Stack</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {errorLogs.map(log => (
+                      <tr key={log._id} className="border-b hover:bg-orange-50">
+                        <td className="px-3 py-2 border text-red-700 max-w-xs truncate" title={log.message}>{log.message}</td>
+                        <td className="px-3 py-2 border">{log.level}</td>
+                        <td className="px-3 py-2 border">{new Date(log.createdAt).toLocaleString()}</td>
+                        <td className="px-3 py-2 border max-w-xs truncate" title={log.stack}>{log.stack?.slice(0, 120) || ''}{log.stack && log.stack.length > 120 ? '...' : ''}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      case 'payment-logs':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4 flex items-center"><CurrencyDollarIcon className="w-6 h-6 mr-2 text-green-500" /> Payment Logs</h2>
+            {paymentLogsLoading ? (
+              <div>Loading payment logs...</div>
+            ) : paymentLogsError ? (
+              <div className="text-red-600">{paymentLogsError}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-3 py-2 border">Event</th>
+                      <th className="px-3 py-2 border">Status</th>
+                      <th className="px-3 py-2 border">Order</th>
+                      <th className="px-3 py-2 border">User</th>
+                      <th className="px-3 py-2 border">Amount</th>
+                      <th className="px-3 py-2 border">Currency</th>
+                      <th className="px-3 py-2 border">Stripe ID</th>
+                      <th className="px-3 py-2 border">Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paymentLogs.map(log => (
+                      <tr key={log._id} className="border-b hover:bg-orange-50">
+                        <td className="px-3 py-2 border">{log.eventType}</td>
+                        <td className="px-3 py-2 border">{log.status}</td>
+                        <td className="px-3 py-2 border">{log.orderId?.orderNumber || ''}</td>
+                        <td className="px-3 py-2 border">{log.userId?.email || ''}</td>
+                        <td className="px-3 py-2 border">{log.amount}</td>
+                        <td className="px-3 py-2 border">{log.currency}</td>
+                        <td className="px-3 py-2 border">{log.stripeId}</td>
+                        <td className="px-3 py-2 border">{new Date(log.createdAt).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
+      case 'webhook-logs':
+        return (
+          <div className="p-6">
+            <h2 className="text-2xl font-bold mb-4 flex items-center"><DocumentTextIcon className="w-6 h-6 mr-2 text-blue-500" /> Webhook Logs</h2>
+            {webhookLogsLoading ? (
+              <div>Loading webhook logs...</div>
+            ) : webhookLogsError ? (
+              <div className="text-red-600">{webhookLogsError}</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-sm border">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-3 py-2 border">Event</th>
+                      <th className="px-3 py-2 border">Status</th>
+                      <th className="px-3 py-2 border">Processed</th>
+                      <th className="px-3 py-2 border">Error</th>
+                      <th className="px-3 py-2 border">Timestamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {webhookLogs.map(log => (
+                      <tr key={log._id} className="border-b hover:bg-orange-50">
+                        <td className="px-3 py-2 border">{log.eventType}</td>
+                        <td className="px-3 py-2 border">{log.status}</td>
+                        <td className="px-3 py-2 border">{log.processed ? 'Yes' : 'No'}</td>
+                        <td className="px-3 py-2 border text-red-700">{log.error}</td>
+                        <td className="px-3 py-2 border">{new Date(log.createdAt).toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        );
       default: return <DashboardOverview />;
     }
   };
@@ -889,24 +1104,7 @@ const AdminDashboard = () => {
 
           <nav className="mt-8 px-4">
             <ul className="space-y-2">
-              {navigationItems.map((item) => {
-                const IconComponent = currentView === item.id ? item.iconSolid : item.icon;
-                return (
-                  <li key={item.id}>
-                    <button
-                      onClick={() => setCurrentView(item.id)}
-                      className={`w-full flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${
-                        currentView === item.id
-                          ? 'bg-primary-100 text-primary-700 border-r-2 border-primary-500'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <IconComponent className="w-5 h-5 mr-3" />
-                      {item.name}
-                    </button>
-                  </li>
-                );
-              })}
+              {renderSidebarItems()}
             </ul>
           </nav>
 
