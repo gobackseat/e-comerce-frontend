@@ -30,4 +30,24 @@ Thumbs.db
 coverage/
 
 # Optional: local build artifacts
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Large files and media
+*.mov
+*.mp4
+*.avi
+*.mkv
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar.bz2
+
+# Large image files (over 10MB)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.webp 
