@@ -54,8 +54,8 @@ const CheckoutForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, o
           price: item.productId?.price || item.price,
           name: item.productId?.name || item.name
         })),
-        successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
-        cancelUrl: `${window.location.origin}/checkout`
+        successUrl: `https://gobackseatextender.us/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `https://gobackseatextender.us/`
       };
 
       // Log the data being sent for debugging
