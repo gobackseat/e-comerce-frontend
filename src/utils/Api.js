@@ -289,3 +289,45 @@ export const Api = {
   DeleteRequest,
   putRequest,
 };
+
+// Create payment intent for direct frontend payment
+export async function createPaymentIntent(paymentData) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-payment-intent`,
+      paymentData,
+      { withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+// Create guest payment intent for direct frontend payment
+export async function createGuestPaymentIntent(paymentData) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/create-guest-payment-intent`,
+      paymentData,
+      { withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
+
+// Confirm payment completion
+export async function confirmPayment(paymentData) {
+  try {
+    const res = await axios.post(
+      `${config.baseURL}/checkout/confirm-payment`,
+      paymentData,
+      { withCredentials: true }
+    );
+    return res.data;
+  } catch (err) {
+    throw err.response?.data || err;
+  }
+}
