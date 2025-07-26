@@ -58,6 +58,9 @@ const CheckoutForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, o
         cancelUrl: `${window.location.origin}/checkout`
       };
 
+      // Log the data being sent for debugging
+      console.log("Sending checkout data:", checkoutData);
+
       let result;
       if (token) {
         // Authenticated checkout
@@ -75,11 +78,22 @@ const CheckoutForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, o
       }
     } catch (error) {
       console.error("Checkout error:", error);
+      console.error("Error details:", {
+        status: error.status,
+        statusText: error.statusText,
+        response: error.response?.data,
+        message: error.message
+      });
+      
       if (error.status === 401 || error.message?.includes('unauthorized')) {
         setError("Please log in again to checkout");
         localStorage.removeItem('E_COMMERCE_TOKEN');
+      } else if (error.response?.data?.error) {
+        setError("Checkout failed: " + error.response.data.error);
+      } else if (error.message) {
+        setError("Checkout failed: " + error.message);
       } else {
-        setError("Checkout failed: " + (error.message || "Unknown error"));
+        setError("Checkout failed: Please try again later");
       }
     } finally {
       setIsProcessing(false);

@@ -1,4 +1,4 @@
-const apiUrl = import.meta.env.VITE_API_URL || 'https://gobackseatextender.us/api';
+const apiUrl = import.meta.env.VITE_API_URL || 'https://e-comerce-backend-mmvv.onrender.com/api';
 
 if (!apiUrl) {
   // You can throw an error or log a warning here
