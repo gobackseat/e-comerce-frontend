@@ -53,7 +53,9 @@ const CheckoutForm = ({ formData, setFormData, cart, getTotalPrice, onSuccess, o
           count: item.count || 1,
           price: item.productId?.price || item.price,
           name: item.productId?.name || item.name
-        }))
+        })),
+        successUrl: `${window.location.origin}/thank-you?session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/checkout`
       };
 
       let result;
