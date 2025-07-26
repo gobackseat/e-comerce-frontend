@@ -43,11 +43,3 @@ coverage/
 *.tar.gz
 *.tar.bz2
 
-# Large image files (over 10MB)
-*.jpg
-*.jpeg
-*.png
-*.gif
-*.bmp
-*.tiff
-*.webp 
